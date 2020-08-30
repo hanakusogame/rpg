@@ -95,12 +95,11 @@ export class MainGame extends g.E {
 		//城
 		const castle = new g.Sprite({
 			scene: scene,
-			src: scene.assets.unit,
-			width: 128,
-			height: 128,
-			srcY: 256,
-			x: 50,
-			y: floor.y - 128,
+			src: scene.assets.house,
+			width: 250,
+			height: 250,
+			x: 0,
+			y: floor.y - 250,
 		});
 		this.append(castle);
 
@@ -112,7 +111,7 @@ export class MainGame extends g.E {
 			height: 128,
 			srcY: 256,
 			srcX: 128,
-			x: 200,
+			x: 150,
 			y: floor.y - 128,
 		});
 		this.append(inn);
@@ -120,13 +119,11 @@ export class MainGame extends g.E {
 		//武器屋
 		const shop = new g.Sprite({
 			scene: scene,
-			src: scene.assets.unit,
-			width: 128,
-			height: 128,
-			srcY: 256,
-			srcX: 256,
-			x: 400,
-			y: floor.y - 128,
+			src: scene.assets.house,
+			srcX: 250,
+			width:250,
+			x: 300,
+			y: floor.y - 250,
 		});
 		this.append(shop);
 
@@ -152,6 +149,7 @@ export class MainGame extends g.E {
 							const isLevelUp = player.addExp(enemy);
 							log.setLog("" + enemy.pram.name + "を倒した");
 							log.setLog("経験値" + enemy.pram.presentExp + "を獲得");
+							scene.addScore(enemy.pram.presentExp);
 							if (isLevelUp) {
 								log.setLog("レベルが" + player.pram.level + "に上がった");
 							}
@@ -176,6 +174,14 @@ export class MainGame extends g.E {
 				statusEnemy.hide();
 			} else {
 				statusEnemy.show();
+			}
+
+			//宿屋
+			if (inn.visible() && g.Collision.intersectAreas(inn, player)) {
+				if (loopCnt % 30 === 0) {
+					player.addHp(10);
+					statusPlayer.setPrams(player);
+				}
 			}
 
 			//次のステージに移動
@@ -205,6 +211,7 @@ export class MainGame extends g.E {
 			for (let i = 0; i < enemyBase.children.length; i++) {
 				const enemy = enemyBase.children[i] as Unit;
 				if (!(enemy.state & 1) && g.Collision.intersectAreas(player, enemy) && enemy.hp <= 0) {
+					log.setLog("" + enemy.weapon.pram.name + "を装備した");
 					player.weapon.init(enemy.weapon.num);
 					statusPlayer.setPrams(player);
 					enemy.hide();
@@ -242,7 +249,7 @@ export class MainGame extends g.E {
 			} else {
 				enemyBase.children.forEach((enemy: Unit) => {
 					enemy.x = scene.random.get(100, 500);
-					enemy.init(scene.random.get(1, 4), -p);
+					enemy.init(scene.random.get(1, 6), -p);
 					enemy.show();
 					enemy.modified();
 				});

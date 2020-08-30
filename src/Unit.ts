@@ -16,10 +16,13 @@ class Pram {
 
 const prams: Pram[] = [
 	{ name: "プレイヤー", level: 1, hpMax: 100, at: 5, df: 1, sp: 5, exp: 0 },
-	{ name: "スライム", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, exp: 0, presentExp: 2 },
-	{ name: "ゴブリン", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, exp: 0, presentExp: 2 },
-	{ name: "コボルド", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, exp: 0, presentExp: 2 },
-	{ name: "オーク", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, exp: 0, presentExp: 2 },
+	{ name: "スライム", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "ゴブリン", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "コボルド", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "オーク", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "イエローデビル", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "ミミック", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "死神", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
 ];
 
 // ユニットクラス
@@ -34,6 +37,7 @@ export class Unit extends g.E {
 	public getSpeed: () => number; //速度取得
 	public addExp: (unit: Unit) => boolean; //経験値を増やす
 	public die: () => void; //死亡処理
+	public addHp: (num: number) => void; //hp回復
 
 	constructor(scene: MainScene, font: g.Font, timeline: any) {
 		super({
@@ -98,6 +102,20 @@ export class Unit extends g.E {
 		});
 		base.append(spr);
 
+		//キャラ絵(大)
+		const sprBig = new g.FrameSprite({
+			scene: scene,
+			src: scene.assets.unit_big as g.ImageAsset,
+			width: 128,
+			height: 128,
+			frames: [0, 1, 2, 3],
+		});
+		base.append(sprBig);
+		sprBig.hide();
+
+		//表示しているスプライト
+		let sprNow = spr;
+
 		//武器
 		this.weapon = new Weapon(scene);
 		base.append(this.weapon);
@@ -115,11 +133,27 @@ export class Unit extends g.E {
 			label.invalidate();
 
 			this.weapon.init(scene.random.get(0, 6));
-			spr.frameNumber = num;
-			spr.moveTo(0, 0);
-			spr.angle = 0;
-			spr.modified();
-			spr.show();
+
+			const bigNum = 4; //キャラ絵の大小の境界
+			if (num < bigNum) {
+				sprNow = spr;
+				this.y = 200;
+			} else {
+				sprNow = sprBig;
+				this.y = 200 - 64;
+			}
+			this.modified();
+
+			base.resizeTo(sprNow.width, sprNow.height);
+			this.resizeTo(sprNow.width, sprNow.height);
+			sprNow.frameNumber = num % bigNum;
+			sprNow.moveTo(0, 0);
+			sprNow.angle = 0;
+			sprNow.modified();
+			spr.hide();
+			sprBig.hide();
+			sprNow.show();
+
 			base.scaleX = s;
 			base.modified();
 			hpBase.show();
@@ -131,8 +165,8 @@ export class Unit extends g.E {
 			barHpSub.modified();
 
 			this.weapon.angle = 45;
-			this.weapon.x = 0;
-			this.weapon.y = 30;
+			this.weapon.x = sprNow.width - 50;
+			this.weapon.y = sprNow.height / 2;
 			this.weapon.modified();
 
 			if (num === 0) {
@@ -144,8 +178,8 @@ export class Unit extends g.E {
 		this.attack = (unit) => {
 			const pram = this.weapon.pram;
 			const num = this.pram.at + scene.random.get(pram.atMin, pram.atMax);
-			this.weapon.x = 30;
-			this.weapon.y = 20;
+			this.weapon.x = sprNow.width - 30;
+			this.weapon.y = sprNow.height / 2;
 			this.weapon.modified();
 			timeline
 				.create(this.weapon)
@@ -155,21 +189,30 @@ export class Unit extends g.E {
 					this.weapon.modified();
 				});
 			timeline.create(spr).moveBy(20, 0, 100).moveBy(-20, 0, 100);
-
 			return unit.defense(num);
+		};
+
+		const showHp: () => void = () => {
+			label.text = "" + this.hp;
+			label.invalidate();
+
+			barHpSub.width = (this.hp / this.pram.hpMax) * barHp.width;
+			barHpSub.modified();
 		};
 
 		// 防御
 		this.defense = (num) => {
 			const damage = Math.max(1, num - this.pram.df);
 			this.hp -= damage;
-			label.text = "" + this.hp;
-			label.invalidate();
-
-			barHpSub.width = (this.hp / this.pram.hpMax) * barHp.width;
-			barHpSub.modified();
+			showHp();
 
 			return damage;
+		};
+
+		// hp回復
+		this.addHp = (num) => {
+			this.hp = Math.min(this.pram.hpMax, this.hp + num);
+			showHp();
 		};
 
 		//速度取得
@@ -196,11 +239,11 @@ export class Unit extends g.E {
 		this.die = () => {
 			hpBase.hide();
 			this.weapon.angle = 45;
-			this.weapon.x = 0;
-			this.weapon.y = 30;
+			this.weapon.x = sprNow.width - 64;
+			this.weapon.y = sprNow.height - 30;
 			this.weapon.modified();
 			tween = timeline
-				.create(spr)
+				.create(sprNow)
 				.rotateBy(-300, 300)
 				.con()
 				.moveBy(-30, -50, 300)
@@ -208,7 +251,7 @@ export class Unit extends g.E {
 				.con()
 				.moveBy(-30, 400, 1000)
 				.call(() => {
-					spr.hide();
+					sprNow.hide();
 				});
 		};
 	}

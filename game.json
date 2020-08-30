@@ -209,6 +209,18 @@
 			"width": 320,
 			"height": 320,
 			"path": "image/weapon.png"
+		},
+		"house": {
+			"type": "image",
+			"width": 500,
+			"height": 250,
+			"path": "image/house.png"
+		},
+		"unit_big": {
+			"type": "image",
+			"width": 384,
+			"height": 384,
+			"path": "image/unit_big.png"
 		}
 	},
 	"moduleMainScripts": {
