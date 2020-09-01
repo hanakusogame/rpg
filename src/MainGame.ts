@@ -27,6 +27,12 @@ export class MainGame extends g.E {
 		});
 		this.append(bg);
 
+		//建物等背景の親エンティティ
+		const bgBase = new g.E({
+			scene: scene,
+		});
+		this.append(bgBase);
+
 		const font = new g.DynamicFont({
 			game: g.game,
 			fontFamily: g.FontFamily.Monospace,
@@ -52,11 +58,6 @@ export class MainGame extends g.E {
 		});
 		this.append(labelStage);
 
-		//プレイヤー
-		const player = new Unit(scene, font, timeline);
-		base.append(player);
-		player.init(0, 1);
-
 		//床
 		const floor = new g.FilledRect({
 			scene: scene,
@@ -67,6 +68,11 @@ export class MainGame extends g.E {
 			y: 264,
 		});
 		base.append(floor);
+
+		//プレイヤー
+		const player = new Unit(scene, font, timeline);
+		base.append(player);
+		player.init(0, 1, floor.y);
 
 		//ステータス表示
 		const statusPlayer = new Status(scene, 10, 0, font);
@@ -114,18 +120,53 @@ export class MainGame extends g.E {
 			x: 150,
 			y: floor.y - 128,
 		});
-		this.append(inn);
+		bgBase.append(inn);
 
-		//武器屋
+		//武器自販機
 		const shop = new g.Sprite({
 			scene: scene,
-			src: scene.assets.house,
-			srcX: 250,
-			width:250,
+			src: scene.assets.shop,
 			x: 300,
 			y: floor.y - 250,
 		});
-		this.append(shop);
+		bgBase.append(shop);
+
+		const priceLabels: g.Label[] = [];
+		for (let i = 0; i < 3; i++) {
+			//値段表示用
+			const label = new g.Label({
+				scene: scene,
+				x: 20 + 80 * i,
+				y: 110,
+				font: font,
+				fontSize: 20,
+				textColor: "black",
+				text: "1000",
+			});
+			shop.append(label);
+			priceLabels.push(label);
+
+			//自販機ボタン
+			const btn = new g.FilledRect({
+				scene: scene,
+				width: 60,
+				height: 60,
+				x: 20 + 80 * i,
+				y: 120,
+				cssColor: "yellow",
+				opacity:0.5,
+				touchable: true,
+			});
+			shop.append(btn);
+			btn.pointDown.add(() => {
+				const enemy = enemyBase.children[i] as Unit;
+				if (enemy.weapon.pram.price <= scene.score) {
+					enemy.y = floor.y - enemy.height;
+					enemy.modified();
+					scene.addScore(-enemy.weapon.pram.price);
+				}
+			});
+		}
 
 		let loopCnt = 0;
 		this.update.add(() => {
@@ -153,7 +194,7 @@ export class MainGame extends g.E {
 							if (isLevelUp) {
 								log.setLog("レベルが" + player.pram.level + "に上がった");
 							}
-							enemy.die();
+							enemy.die(true);
 						}
 
 						statusPlayer.setPrams(player);
@@ -241,16 +282,31 @@ export class MainGame extends g.E {
 
 			if (stage === 0 || stage % 4 === 0) {
 				if (stage === 0) {
+					//スタート地点(城のみ)
 					castle.show();
 				} else {
+					//回復と自販機エリア
 					inn.show();
 					shop.show();
+					enemyBase.children.forEach((enemy: Unit, i) => {
+						enemy.x = 280 + 70 * i;
+						enemy.init(1, 1, 130);
+						enemy.show();
+						enemy.angle = -45;
+						enemy.modified();
+						enemy.die(false); //殺す
+
+						priceLabels[i].text = "" + enemy.weapon.pram.price;
+						priceLabels[i].invalidate();
+					});
 				}
 			} else {
+				//敵エリア
 				enemyBase.children.forEach((enemy: Unit) => {
 					enemy.x = scene.random.get(100, 500);
-					enemy.init(scene.random.get(1, 6), -p);
+					enemy.init(scene.random.get(1, 6), -p, floor.y);
 					enemy.show();
+					enemy.angle = 0;
 					enemy.modified();
 				});
 			}

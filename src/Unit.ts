@@ -31,13 +31,14 @@ export class Unit extends g.E {
 	public attackTime = 10;
 	public pram: Pram;
 	public weapon: Weapon;
-	public init: (x: number, s: number) => void;
+	public init: (x: number, s: number, y: number) => void;
 	public attack: (unit: Unit) => number; //攻撃する
 	public defense: (num: number) => number; //攻撃を受ける
 	public getSpeed: () => number; //速度取得
 	public addExp: (unit: Unit) => boolean; //経験値を増やす
-	public die: () => void; //死亡処理
+	public die: (isAnim: boolean) => void; //死亡処理
 	public addHp: (num: number) => void; //hp回復
+	public base: g.E;
 
 	constructor(scene: MainScene, font: g.Font, timeline: any) {
 		super({
@@ -85,19 +86,19 @@ export class Unit extends g.E {
 		});
 		hpBase.append(barHpSub);
 
+		//キャラクターと武器の親エンティティ
 		const base = new g.E({
 			scene: scene,
-			width: 64,
-			height: 64,
 		});
 		this.append(base);
+		this.base = base;
 
 		//キャラ絵表示用
 		const spr = new g.FrameSprite({
 			scene: scene,
 			src: scene.assets.unit as g.ImageAsset,
-			width: 64,
-			height: 64,
+			width: 80,
+			height: 80,
 			frames: [0, 1, 2, 3, 4],
 		});
 		base.append(spr);
@@ -106,8 +107,8 @@ export class Unit extends g.E {
 		const sprBig = new g.FrameSprite({
 			scene: scene,
 			src: scene.assets.unit_big as g.ImageAsset,
-			width: 128,
-			height: 128,
+			width: 160,
+			height: 160,
 			frames: [0, 1, 2, 3],
 		});
 		base.append(sprBig);
@@ -123,7 +124,7 @@ export class Unit extends g.E {
 		let tween: any = null;
 
 		//初期化
-		this.init = (num: number, s: number) => {
+		this.init = (num: number, s: number, y: number) => {
 			this.pram = Object.create(prams[num]);
 
 			timeline.remove(tween);
@@ -132,16 +133,13 @@ export class Unit extends g.E {
 			label.text = "" + this.hp;
 			label.invalidate();
 
-			this.weapon.init(scene.random.get(0, 6));
-
 			const bigNum = 4; //キャラ絵の大小の境界
 			if (num < bigNum) {
 				sprNow = spr;
-				this.y = 200;
 			} else {
 				sprNow = sprBig;
-				this.y = 200 - 64;
 			}
+			this.y = y - sprNow.height;
 			this.modified();
 
 			base.resizeTo(sprNow.width, sprNow.height);
@@ -164,10 +162,13 @@ export class Unit extends g.E {
 			barHpSub.width = barHp.width;
 			barHpSub.modified();
 
-			this.weapon.angle = 45;
-			this.weapon.x = sprNow.width - 50;
+			this.weapon.init(scene.random.get(0, 6));
+
+			this.weapon.angle = 0;
+			this.weapon.x = sprNow.width - 30;
 			this.weapon.y = sprNow.height / 2;
 			this.weapon.modified();
+			base.append(this.weapon);
 
 			if (num === 0) {
 				this.touchable = true;
@@ -205,7 +206,6 @@ export class Unit extends g.E {
 			const damage = Math.max(1, num - this.pram.df);
 			this.hp -= damage;
 			showHp();
-
 			return damage;
 		};
 
@@ -236,23 +236,28 @@ export class Unit extends g.E {
 		};
 
 		//死亡処理
-		this.die = () => {
+		this.die = (isAnim: boolean) => {
 			hpBase.hide();
+			this.hp = 0;
 			this.weapon.angle = 45;
 			this.weapon.x = sprNow.width - 64;
 			this.weapon.y = sprNow.height - 30;
 			this.weapon.modified();
-			tween = timeline
-				.create(sprNow)
-				.rotateBy(-300, 300)
-				.con()
-				.moveBy(-30, -50, 300)
-				.rotateBy(-1000, 1000)
-				.con()
-				.moveBy(-30, 400, 1000)
-				.call(() => {
-					sprNow.hide();
-				});
+			if (isAnim) {
+				tween = timeline
+					.create(sprNow)
+					.rotateBy(-300, 300)
+					.con()
+					.moveBy(-30, -50, 300)
+					.rotateBy(-1000, 1000)
+					.con()
+					.moveBy(-30, 400, 1000)
+					.call(() => {
+						sprNow.hide();
+					});
+			} else {
+				sprNow.hide();
+			}
 		};
 	}
 }

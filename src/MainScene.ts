@@ -21,6 +21,7 @@ export class MainScene extends g.Scene {
 	public numFontY: g.Font;
 	public numFontB: g.Font;
 	public numFontK: g.Font;
+	public score: number;
 
 	constructor(param: g.SceneParameterObject) {
 		param.assetIds = [
@@ -33,6 +34,7 @@ export class MainScene extends g.Scene {
 			"time",
 			"effect",
 			"house",
+			"shop",
 			"unit",
 			"unit_big",
 			"weapon",
@@ -50,7 +52,7 @@ export class MainScene extends g.Scene {
 			"se_move",
 			"se_miss",
 			"se_hit",
-			"se_item"
+			"se_item",
 		];
 		super(param);
 
@@ -193,7 +195,7 @@ export class MainScene extends g.Scene {
 			// 	new g.Sprite({ scene: this, src: this.assets.score, x: 450, y: 0, height: 32 })
 			// );
 
-			let score = 0;
+			this.score = 0;
 			const labelScore = new g.Label({
 				scene: this,
 				x: 430,
@@ -355,12 +357,10 @@ export class MainScene extends g.Scene {
 						.wait(2500)
 						.call(() => {
 							if (typeof window !== "undefined" && window.RPGAtsumaru) {
-								window.RPGAtsumaru.scoreboards
-									.setRecord(1, g.game.vars.gameState.score)
-									.then(() => {
-										btnRanking.show();
-										btnReset.show();
-									});
+								window.RPGAtsumaru.scoreboards.setRecord(1, g.game.vars.gameState.score).then(() => {
+									btnRanking.show();
+									btnReset.show();
+								});
 							}
 
 							if (isDebug) {
@@ -400,13 +400,13 @@ export class MainScene extends g.Scene {
 			// スコア加算表示
 			let bkTweenScore: any;
 			this.addScore = (num: number) => {
-				if (score + num < 0) {
-					num = -score;
+				if (this.score + num < 0) {
+					num = -this.score;
 				}
-				score += num;
+				this.score += num;
 
 				timeline.create().every((e: number, p: number) => {
-					labelScore.text = "" + (score - Math.floor(num * (1 - p))) + "P";
+					labelScore.text = "" + (this.score - Math.floor(num * (1 - p))) + "P";
 					labelScore.invalidate();
 				}, 500);
 
@@ -419,14 +419,14 @@ export class MainScene extends g.Scene {
 						labelScorePlus.opacity = p;
 						labelScorePlus.modified();
 					}, 100)
-					.wait(4000)
+					.wait(2000)
 					.call(() => {
 						labelScorePlus.opacity = 0;
 						labelScorePlus.modified();
 					});
 
-				g.game.vars.gameState.score = score;
-				if (typeof window !== "undefined") window.score = score;
+				g.game.vars.gameState.score = this.score;
+				if (typeof window !== "undefined") window.score = this.score;
 			};
 
 			// リセット
@@ -435,7 +435,7 @@ export class MainScene extends g.Scene {
 				startTime = Date.now();
 				this.isStart = true;
 
-				score = 0;
+				this.score = 0;
 				labelScore.text = "0P";
 				labelScore.invalidate();
 				labelScorePlus.text = "";

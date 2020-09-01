@@ -6,16 +6,17 @@ type Pram = {
 	dfMin: number;
 	dfMax: number;
 	sp: number;
+	price: number;
 };
 
 const prams: Pram[] = [
-	{ name: "こんぼう", atMin: 2, atMax: 5, dfMin: 1, dfMax: 1, sp: 5 },
-	{ name: "鉄バット", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0 },
-	{ name: "どうのつるぎ", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 20 },
-	{ name: "包丁", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0 },
-	{ name: "鉄バット", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0 },
-	{ name: "どうのつるぎ", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 20 },
-	{ name: "包丁", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0 },
+	{ name: "こんぼう", atMin: 2, atMax: 5, dfMin: 1, dfMax: 1, sp: 5, price: 100 },
+	{ name: "鉄バット", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 200 },
+	{ name: "どうのつるぎ", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 20, price: 400 },
+	{ name: "包丁", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 500 },
+	{ name: "鉄バット", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 700 },
+	{ name: "どうのつるぎ", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 20, price: 1000 },
+	{ name: "包丁", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 2000 },
 ];
 
 // 武器クラス
@@ -37,10 +38,10 @@ export class Weapon extends g.E {
 		const spr = new g.FrameSprite({
 			scene: scene,
 			src: scene.assets.weapon as g.ImageAsset,
-			width: 64,
-			height: 64,
+			width: 100,
+			height: 100,
 			frames: [0, 1, 2, 3, 4, 5, 6],
-			y: -32,
+			y: -80,
 		});
 		this.append(spr);
 

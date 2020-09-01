@@ -200,14 +200,14 @@
 		},
 		"unit": {
 			"type": "image",
-			"width": 384,
-			"height": 384,
+			"width": 480,
+			"height": 480,
 			"path": "image/unit.png"
 		},
 		"weapon": {
 			"type": "image",
-			"width": 320,
-			"height": 320,
+			"width": 500,
+			"height": 500,
 			"path": "image/weapon.png"
 		},
 		"house": {
@@ -218,9 +218,15 @@
 		},
 		"unit_big": {
 			"type": "image",
-			"width": 384,
-			"height": 384,
+			"width": 480,
+			"height": 480,
 			"path": "image/unit_big.png"
+		},
+		"shop": {
+			"type": "image",
+			"width": 300,
+			"height": 250,
+			"path": "image/shop.png"
 		}
 	},
 	"moduleMainScripts": {
