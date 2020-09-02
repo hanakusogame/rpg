@@ -1,3 +1,4 @@
+import tl = require("@akashic-extension/akashic-timeline");
 import { Button } from "./Button";
 import { Config } from "./Config";
 import { MainGame } from "./MainGame";
@@ -35,8 +36,14 @@ export class MainScene extends g.Scene {
 			"effect",
 			"house",
 			"shop",
+			"inn_b",
+			"inn_f",
+			"bg",
+			"bg2",
 			"unit",
 			"unit_big",
+			"shadow",
+			"shadow_big",
 			"weapon",
 			"config",
 			"volume",
@@ -56,8 +63,6 @@ export class MainScene extends g.Scene {
 		];
 		super(param);
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const tl = require("@akashic-extension/akashic-timeline");
 		const timeline = new tl.Timeline(this);
 		const timeline2 = new tl.Timeline(this);
 		const isDebug = true;
@@ -101,7 +106,7 @@ export class MainScene extends g.Scene {
 				scene: this,
 				width: 640,
 				height: 360,
-				cssColor: "#303030",
+				cssColor: "white",
 				opacity: 0,
 			});
 
@@ -128,7 +133,6 @@ export class MainScene extends g.Scene {
 			timeline
 				.create(sprTitle, {
 					modified: sprTitle.modified,
-					destroyd: sprTitle.destroyed,
 				})
 				.wait(isDebug ? 1000 : 5000)
 				.moveBy(-800, 0, 200)
@@ -353,7 +357,7 @@ export class MainScene extends g.Scene {
 					this.playSound("se_timeup");
 
 					timeline
-						.create()
+						.create(this)
 						.wait(2500)
 						.call(() => {
 							if (typeof window !== "undefined" && window.RPGAtsumaru) {
@@ -386,7 +390,7 @@ export class MainScene extends g.Scene {
 					fg.opacity = 0.1;
 					fg.modified();
 					timeline
-						.create()
+						.create(this)
 						.wait(500)
 						.call(() => {
 							fg.opacity = 0.0;
@@ -405,7 +409,7 @@ export class MainScene extends g.Scene {
 				}
 				this.score += num;
 
-				timeline.create().every((e: number, p: number) => {
+				timeline.create(this).every((e: number, p: number) => {
 					labelScore.text = "" + (this.score - Math.floor(num * (1 - p))) + "P";
 					labelScore.invalidate();
 				}, 500);
@@ -414,7 +418,7 @@ export class MainScene extends g.Scene {
 				labelScorePlus.invalidate();
 				if (bkTweenScore) timeline2.remove(bkTweenScore);
 				bkTweenScore = timeline2
-					.create()
+					.create(this)
 					.every((e: number, p: number) => {
 						labelScorePlus.opacity = p;
 						labelScorePlus.modified();
@@ -443,7 +447,7 @@ export class MainScene extends g.Scene {
 
 				sprStart.show();
 				timeline
-					.create()
+					.create(this)
 					.wait(750)
 					.call(() => {
 						sprStart.hide();

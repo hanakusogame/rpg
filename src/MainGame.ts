@@ -1,7 +1,8 @@
+import tl = require("@akashic-extension/akashic-timeline");
+import { Log } from "./Log";
 import { MainScene } from "./MainScene";
 import { Status } from "./Status";
 import { Unit } from "./Unit";
-
 declare function require(x: string): any;
 
 // メインのゲーム画面
@@ -12,17 +13,13 @@ export class MainGame extends g.E {
 
 	constructor(scene: MainScene) {
 		super({ scene: scene, x: 0, y: 0, width: 640, height: 360, touchable: true });
-
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const tl = require("@akashic-extension/akashic-timeline");
 		const timeline = new tl.Timeline(scene);
 
 		//背景
-		const bg = new g.FilledRect({
+		const bg = new g.Sprite({
 			scene: scene,
-			width: g.game.width,
-			height: g.game.height,
-			cssColor: "white",
+			src: scene.assets.bg2,
+			y: -80,
 			opacity: 0.5,
 		});
 		this.append(bg);
@@ -45,6 +42,12 @@ export class MainGame extends g.E {
 		});
 		this.append(base);
 
+		//ステータス・メッセージ等
+		const uiBase = new g.E({
+			scene: scene,
+		});
+		this.append(uiBase);
+
 		//ステージ数表示用
 		let stage = 1;
 		const labelStage = new g.Label({
@@ -56,7 +59,7 @@ export class MainGame extends g.E {
 			x: 500,
 			y: 270,
 		});
-		this.append(labelStage);
+		uiBase.append(labelStage);
 
 		//床
 		const floor = new g.FilledRect({
@@ -67,7 +70,7 @@ export class MainGame extends g.E {
 			x: 0,
 			y: 264,
 		});
-		base.append(floor);
+		//base.append(floor);
 
 		//プレイヤー
 		const player = new Unit(scene, font, timeline);
@@ -75,15 +78,15 @@ export class MainGame extends g.E {
 		player.init(0, 1, floor.y);
 
 		//ステータス表示
-		const statusPlayer = new Status(scene, 10, 0, font);
-		this.append(statusPlayer);
+		const statusPlayer = new Status(scene, 5, 5, font);
+		uiBase.append(statusPlayer);
 
 		//敵ステータス表示
-		const statusEnemy = new Status(scene, 300, 0, font);
-		this.append(statusEnemy);
+		const statusEnemy = new Status(scene, 300, 5, font);
+		uiBase.append(statusEnemy);
 
 		//ログ表示用
-		const log = new Log(scene, 10, 270);
+		const log = new Log(scene, 5, 270);
 		this.append(log);
 
 		//敵配置用
@@ -107,20 +110,24 @@ export class MainGame extends g.E {
 			x: 0,
 			y: floor.y - 250,
 		});
-		this.append(castle);
+		bgBase.append(castle);
 
 		//宿屋
-		const inn = new g.Sprite({
+		const innBack = new g.Sprite({
 			scene: scene,
-			src: scene.assets.unit,
-			width: 128,
-			height: 128,
-			srcY: 256,
-			srcX: 128,
-			x: 150,
-			y: floor.y - 128,
+			src: scene.assets.inn_b,
+			x: 50,
+			y: floor.y - 210,
 		});
-		bgBase.append(inn);
+		bgBase.append(innBack);
+
+		const innFront = new g.Sprite({
+			scene: scene,
+			src: scene.assets.inn_f,
+			x: 50,
+			y: floor.y - 210,
+		});
+		this.append(innFront);
 
 		//武器自販機
 		const shop = new g.Sprite({
@@ -154,7 +161,7 @@ export class MainGame extends g.E {
 				x: 20 + 80 * i,
 				y: 120,
 				cssColor: "yellow",
-				opacity:0.5,
+				opacity: 0.5,
 				touchable: true,
 			});
 			shop.append(btn);
@@ -190,7 +197,7 @@ export class MainGame extends g.E {
 							const isLevelUp = player.addExp(enemy);
 							log.setLog("" + enemy.pram.name + "を倒した");
 							log.setLog("経験値" + enemy.pram.presentExp + "を獲得");
-							scene.addScore(enemy.pram.presentExp);
+							scene.addScore(enemy.pram.score);
 							if (isLevelUp) {
 								log.setLog("レベルが" + player.pram.level + "に上がった");
 							}
@@ -218,7 +225,7 @@ export class MainGame extends g.E {
 			}
 
 			//宿屋
-			if (inn.visible() && g.Collision.intersectAreas(inn, player)) {
+			if (innBack.visible() && g.Collision.intersectAreas(innBack, player)) {
 				if (loopCnt % 30 === 0) {
 					player.addHp(10);
 					statusPlayer.setPrams(player);
@@ -266,7 +273,8 @@ export class MainGame extends g.E {
 			if (stage === 0) {
 				castle.hide();
 			} else if (stage % 4 === 0) {
-				inn.hide();
+				innBack.hide();
+				innFront.hide();
 				shop.hide();
 			} else {
 				enemyBase.children.forEach((enemy: Unit) => {
@@ -286,7 +294,9 @@ export class MainGame extends g.E {
 					castle.show();
 				} else {
 					//回復と自販機エリア
-					inn.show();
+					innBack.show();
+					innFront.show();
+
 					shop.show();
 					enemyBase.children.forEach((enemy: Unit, i) => {
 						enemy.x = 280 + 70 * i;
@@ -313,7 +323,9 @@ export class MainGame extends g.E {
 
 			player.x = p === -1 ? g.game.width - player.width : 0;
 			player.modified();
-			this.append(player);
+			base.append(player);
+
+			base.append(innFront);
 
 			log.setLog("エリア " + stage);
 		};
@@ -328,52 +340,10 @@ export class MainGame extends g.E {
 			stage = -1;
 			moveStage(0);
 			statusPlayer.setPrams(player);
-			inn.hide();
+			innBack.hide();
+			innFront.hide();
 			shop.hide();
 			return;
-		};
-	}
-}
-
-//ログ表示ウィンドウクラス
-class Log extends g.E {
-	public setLog: (str: string) => void;
-	constructor(scene: g.Scene, x: number, y: number) {
-		super({ scene: scene, x: x, y: y });
-
-		const font = new g.DynamicFont({
-			game: g.game,
-			fontFamily: g.FontFamily.Monospace,
-			size: 15,
-		});
-
-		//ログ表示用
-		const logs: g.Label[] = [];
-		const addLabel: (str: string) => void = (str) => {
-			const label = new g.Label({
-				scene: scene,
-				font: font,
-				textColor: "white",
-				fontSize: 15,
-				text: str,
-			});
-			logs.push(label);
-			this.append(label);
-		};
-
-		this.setLog = (str) => {
-			if (logs.length < 5) {
-				addLabel(str);
-			} else {
-				const label = logs.shift();
-				label.text = str;
-				label.invalidate();
-				logs.push(label);
-			}
-			for (let i = 0; i < logs.length; i++) {
-				logs[i].y = i * 16;
-				logs[i].modified();
-			}
 		};
 	}
 }

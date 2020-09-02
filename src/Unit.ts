@@ -1,3 +1,4 @@
+import tl = require("@akashic-extension/akashic-timeline");
 import { MainScene } from "./MainScene";
 import { Weapon } from "./Weapon";
 declare function require(x: string): any;
@@ -12,17 +13,18 @@ class Pram {
 	sp: number;
 	exp?: number = 0;
 	presentExp?: number = 0;
+	score?: number = 0;
 }
 
 const prams: Pram[] = [
 	{ name: "プレイヤー", level: 1, hpMax: 100, at: 5, df: 1, sp: 5, exp: 0 },
-	{ name: "スライム", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2 },
-	{ name: "ゴブリン", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
-	{ name: "コボルド", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
-	{ name: "オーク", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
-	{ name: "イエローデビル", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2 },
-	{ name: "ミミック", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
-	{ name: "死神", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2 },
+	{ name: "スライム", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2, score: 100 },
+	{ name: "ゴブリン", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 200 },
+	{ name: "コボルド", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 300 },
+	{ name: "オーク", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 400 },
+	{ name: "イエローデビル", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2, score: 500 },
+	{ name: "ミミック", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 500 },
+	{ name: "死神", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 600 },
 ];
 
 // ユニットクラス
@@ -40,7 +42,7 @@ export class Unit extends g.E {
 	public addHp: (num: number) => void; //hp回復
 	public base: g.E;
 
-	constructor(scene: MainScene, font: g.Font, timeline: any) {
+	constructor(scene: MainScene, font: g.Font, timeline: tl.Timeline) {
 		super({
 			scene: scene,
 			width: 64,
@@ -93,6 +95,23 @@ export class Unit extends g.E {
 		this.append(base);
 		this.base = base;
 
+		//影
+		const sprShadow = new g.Sprite({
+			scene: scene,
+			src: scene.assets.shadow,
+			y: 55,
+			opacity: 0.3,
+		});
+		base.append(sprShadow);
+
+		const sprShadowBig = new g.Sprite({
+			scene: scene,
+			src: scene.assets.shadow_big,
+			y: 110,
+			opacity: 0.3,
+		});
+		base.append(sprShadowBig);
+
 		//キャラ絵表示用
 		const spr = new g.FrameSprite({
 			scene: scene,
@@ -121,7 +140,7 @@ export class Unit extends g.E {
 		this.weapon = new Weapon(scene);
 		base.append(this.weapon);
 
-		let tween: any = null;
+		let tween: tl.Tween = null;
 
 		//初期化
 		this.init = (num: number, s: number, y: number) => {
@@ -133,11 +152,16 @@ export class Unit extends g.E {
 			label.text = "" + this.hp;
 			label.invalidate();
 
+			sprShadow.hide();
+			sprShadowBig.hide();
+
 			const bigNum = 4; //キャラ絵の大小の境界
 			if (num < bigNum) {
 				sprNow = spr;
+				sprShadow.show();
 			} else {
 				sprNow = sprBig;
+				sprShadowBig.show();
 			}
 			this.y = y - sprNow.height;
 			this.modified();
@@ -240,9 +264,16 @@ export class Unit extends g.E {
 			hpBase.hide();
 			this.hp = 0;
 			this.weapon.angle = 45;
-			this.weapon.x = sprNow.width - 64;
+			this.weapon.x = sprNow.width - 100;
 			this.weapon.y = sprNow.height - 30;
 			this.weapon.modified();
+
+			sprShadow.show();
+			sprShadowBig.hide();
+
+			sprShadow.y = sprNow.width - 20;
+			sprShadow.modified();
+
 			if (isAnim) {
 				tween = timeline
 					.create(sprNow)

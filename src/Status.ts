@@ -18,9 +18,19 @@ export class Status extends g.E {
 			});
 		};
 
+		//背景
+		const bg = new g.FilledRect({
+			scene: scene,
+			width: 240,
+			height: 100,
+			cssColor: "black",
+			opacity: 0.5
+		});
+		this.append(bg);
+
 		//ラベルを作成して配置
 		const createPram: (x: number, y: number, text: string) => g.Label = (x, y, text) => {
-			const labelTitle = createLabel(x * 130, y * 16, text);
+			const labelTitle = createLabel(x * 130 + 5, y * 16, text);
 			this.append(labelTitle);
 
 			const label = createLabel(50, 0, "0");

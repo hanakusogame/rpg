@@ -212,7 +212,7 @@
 		},
 		"house": {
 			"type": "image",
-			"width": 500,
+			"width": 250,
 			"height": 250,
 			"path": "image/house.png"
 		},
@@ -227,6 +227,47 @@
 			"width": 300,
 			"height": 250,
 			"path": "image/shop.png"
+		},
+		"inn_b": {
+			"type": "image",
+			"width": 250,
+			"height": 250,
+			"path": "image/inn_b.png"
+		},
+		"inn_f": {
+			"type": "image",
+			"width": 250,
+			"height": 250,
+			"path": "image/inn_f.png"
+		},
+		"bg": {
+			"type": "image",
+			"width": 640,
+			"height": 480,
+			"path": "image/bg.png"
+		},
+		"bg2": {
+			"type": "image",
+			"width": 640,
+			"height": 480,
+			"path": "image/bg2.png"
+		},
+		"Log": {
+			"type": "script",
+			"path": "script/Log.js",
+			"global": true
+		},
+		"shadow": {
+			"type": "image",
+			"width": 80,
+			"height": 40,
+			"path": "image/shadow.png"
+		},
+		"shadow_big": {
+			"type": "image",
+			"width": 160,
+			"height": 80,
+			"path": "image/shadow_big.png"
 		}
 	},
 	"moduleMainScripts": {
