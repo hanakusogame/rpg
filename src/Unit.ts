@@ -5,6 +5,7 @@ declare function require(x: string): any;
 
 //パラメータークラス
 class Pram {
+	id: number;
 	name: string;
 	level: number;
 	hpMax: number;
@@ -25,7 +26,7 @@ export class Unit extends g.E {
 	public attackTime = 10;
 	public pram: Pram;
 	public weapon: Weapon;
-	public init: (x: number, s: number, y: number) => void;
+	public init: (x: number, d: number, y: number) => void;
 	public attack: (unit: Unit) => number; //攻撃する
 	public defense: (num: number) => number; //攻撃を受ける
 	public getSpeed: () => number; //速度取得
@@ -33,6 +34,7 @@ export class Unit extends g.E {
 	public die: (isAnim: boolean) => void; //死亡処理
 	public addHp: (num: number) => void; //hp回復
 	public base: g.E;
+	public direction: number = 1; //左右の向き
 
 	constructor(scene: MainScene, font: g.Font, timeline: tl.Timeline) {
 		super({
@@ -44,7 +46,6 @@ export class Unit extends g.E {
 		});
 
 		if (!prams) {
-
 			//csvを読み込んでパラメーター配列作成
 			prams = [];
 			const text = scene.assets.unit_csv as g.TextAsset;
@@ -57,15 +58,16 @@ export class Unit extends g.E {
 			for (var i = 1; i < tmp.length; ++i) {
 				const row = tmp[i].split(",");
 				prams.push({
-					name: row[0],
-					level: Number(row[1]),
-					hpMax: Number(row[2]),
-					at: Number(row[3]),
-					df: Number(row[4]),
-					sp: Number(row[5]),
-					exp: Number(row[6]),
-					presentExp: Number(row[7]),
-					score: Number(row[8]),
+					id: Number(row[0]),
+					name: row[1],
+					level: Number(row[2]),
+					hpMax: Number(row[3]),
+					at: Number(row[4]),
+					df: Number(row[5]),
+					sp: Number(row[6]),
+					exp: Number(row[7]),
+					presentExp: Number(row[8]),
+					score: Number(row[9]),
 				});
 			}
 		}
@@ -162,7 +164,7 @@ export class Unit extends g.E {
 		let tween: tl.Tween = null;
 
 		//初期化
-		this.init = (num: number, s: number, y: number) => {
+		this.init = (num: number, d: number, y: number) => {
 			this.pram = Object.create(prams[num]);
 
 			timeline.remove(tween);
@@ -198,7 +200,8 @@ export class Unit extends g.E {
 			sprBig.hide();
 			sprNow.show();
 
-			base.scaleX = s;
+			this.direction = d;
+			base.scaleX = d;
 			base.modified();
 			hpBase.show();
 
@@ -250,7 +253,7 @@ export class Unit extends g.E {
 		// 防御
 		this.defense = (num) => {
 			const damage = Math.max(1, num - this.pram.df);
-			this.hp -= damage;
+			this.hp = Math.min(0, this.hp - damage);
 			showHp();
 			return damage;
 		};

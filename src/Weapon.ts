@@ -1,5 +1,6 @@
 //ステータス
 type Pram = {
+	id: number;
 	name: string;
 	atMin: number;
 	atMax: number;
@@ -39,13 +40,14 @@ export class Weapon extends g.E {
 			for (var i = 1; i < tmp.length; ++i) {
 				const row = tmp[i].split(",");
 				prams.push({
-					name: row[0],
-					atMin: Number(row[1]),
-					atMax: Number(row[2]),
-					dfMin: Number(row[3]),
-					dfMax: Number(row[4]),
-					sp: Number(row[5]),
-					price: Number(row[6]),
+					id:Number(row[0]),
+					name: row[1],
+					atMin: Number(row[2]),
+					atMax: Number(row[3]),
+					dfMin: Number(row[4]),
+					dfMax: Number(row[5]),
+					sp: Number(row[6]),
+					price: Number(row[7]),
 				});
 			}
 		}

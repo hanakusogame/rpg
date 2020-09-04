@@ -39,6 +39,8 @@ export class MainGame extends g.E {
 		//マップ全体
 		const base = new g.E({
 			scene: scene,
+			width: g.game.width,
+			height: g.game.height,
 		});
 		this.append(base);
 
@@ -186,7 +188,8 @@ export class MainGame extends g.E {
 
 			let isIntersect = false;
 			enemyBase.children?.forEach((enemy: Unit) => {
-				if (enemy.visible() && enemy.hp > 0 && g.Collision.intersectAreas(player, enemy)) {
+				if (!(enemy.visible() && enemy.hp > 0)) return;
+				if (g.Collision.intersectAreas(player, enemy)) {
 					if (loopCnt % (30 - player.attackTime) === 0) {
 						//プレイヤーの攻撃
 						const damage = player.attack(enemy);
@@ -215,6 +218,12 @@ export class MainGame extends g.E {
 					}
 
 					isIntersect = true;
+				} else {
+					enemy.x += 0.5 * enemy.direction;
+					enemy.modified();
+
+					if (enemy.direction === -1 && enemy.x < 0) enemy.direction = 1;
+					else if (enemy.direction === 1 && enemy.x > base.width - enemy.base.width) enemy.direction = -1;
 				}
 			});
 
