@@ -9,15 +9,7 @@ type Pram = {
 	price: number;
 };
 
-const prams: Pram[] = [
-	{ name: "こんぼう", atMin: 2, atMax: 5, dfMin: 1, dfMax: 1, sp: 5, price: 100 },
-	{ name: "鉄バット", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 200 },
-	{ name: "どうのつるぎ", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 20, price: 400 },
-	{ name: "包丁", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 500 },
-	{ name: "鉄バット", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 700 },
-	{ name: "どうのつるぎ", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 20, price: 1000 },
-	{ name: "包丁", atMin: 2, atMax: 5, dfMin: 0, dfMax: 1, sp: 0, price: 2000 },
-];
+let prams: Pram[] = null;
 
 // 武器クラス
 export class Weapon extends g.E {
@@ -33,6 +25,32 @@ export class Weapon extends g.E {
 			x: 50,
 			y: 0,
 		});
+
+		if (!prams) {
+			//csvを読み込んでパラメーター配列作成
+			prams = [];
+			const text = scene.assets.weapon_csv as g.TextAsset;
+
+			// 読み込んだCSVデータが文字列として渡される
+			//var result: string[][] = []; // 最終的な二次元配列を入れるための配列
+			const tmp = text.data.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+
+			// 各行ごとにカンマで区切った文字列を要素としたインスタンスを生成
+			for (var i = 1; i < tmp.length; ++i) {
+				const row = tmp[i].split(",");
+				prams.push({
+					name: row[0],
+					atMin: Number(row[1]),
+					atMax: Number(row[2]),
+					dfMin: Number(row[3]),
+					dfMax: Number(row[4]),
+					sp: Number(row[5]),
+					price: Number(row[6]),
+				});
+			}
+		}
+
+		console.log(prams);
 
 		//画像表示用
 		const spr = new g.FrameSprite({

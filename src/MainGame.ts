@@ -299,8 +299,8 @@ export class MainGame extends g.E {
 
 					shop.show();
 					enemyBase.children.forEach((enemy: Unit, i) => {
-						enemy.x = 280 + 70 * i;
-						enemy.init(1, 1, 130);
+						enemy.x = 320 + 70 * i;
+						enemy.init(1, 1, 100);
 						enemy.show();
 						enemy.angle = -45;
 						enemy.modified();
@@ -312,9 +312,9 @@ export class MainGame extends g.E {
 				}
 			} else {
 				//敵エリア
-				enemyBase.children.forEach((enemy: Unit) => {
-					enemy.x = scene.random.get(100, 500);
-					enemy.init(scene.random.get(1, 6), -p, floor.y);
+				enemyBase.children.forEach((enemy: Unit, i) => {
+					enemy.x = scene.random.get(100, 180) + 170 * i;
+					enemy.init(scene.random.get(1, 32), -p, floor.y);
 					enemy.show();
 					enemy.angle = 0;
 					enemy.modified();

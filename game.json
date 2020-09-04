@@ -268,6 +268,14 @@
 			"width": 160,
 			"height": 80,
 			"path": "image/shadow_big.png"
+		},
+		"unit_csv": {
+			"type": "text",
+			"path": "text/unit_csv.csv"
+		},
+		"weapon_csv": {
+			"type": "text",
+			"path": "text/weapon_csv.csv"
 		}
 	},
 	"moduleMainScripts": {

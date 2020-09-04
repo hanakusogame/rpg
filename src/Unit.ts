@@ -3,7 +3,7 @@ import { MainScene } from "./MainScene";
 import { Weapon } from "./Weapon";
 declare function require(x: string): any;
 
-//パラメーター
+//パラメータークラス
 class Pram {
 	name: string;
 	level: number;
@@ -16,16 +16,8 @@ class Pram {
 	score?: number = 0;
 }
 
-const prams: Pram[] = [
-	{ name: "プレイヤー", level: 1, hpMax: 100, at: 5, df: 1, sp: 5, exp: 0 },
-	{ name: "スライム", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2, score: 100 },
-	{ name: "ゴブリン", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 200 },
-	{ name: "コボルド", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 300 },
-	{ name: "オーク", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 400 },
-	{ name: "イエローデビル", level: 1, hpMax: 10, at: 2, df: 0, sp: 0, presentExp: 2, score: 500 },
-	{ name: "ミミック", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 500 },
-	{ name: "死神", level: 1, hpMax: 30, at: 2, df: 0, sp: 0, presentExp: 2, score: 600 },
-];
+//パラメーターリスト
+let prams: Pram[] = null;
 
 // ユニットクラス
 export class Unit extends g.E {
@@ -50,6 +42,33 @@ export class Unit extends g.E {
 			//cssColor: "gray",
 			y: 200,
 		});
+
+		if (!prams) {
+
+			//csvを読み込んでパラメーター配列作成
+			prams = [];
+			const text = scene.assets.unit_csv as g.TextAsset;
+
+			// 読み込んだCSVデータが文字列として渡される
+			//var result: string[][] = []; // 最終的な二次元配列を入れるための配列
+			const tmp = text.data.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+
+			// 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
+			for (var i = 1; i < tmp.length; ++i) {
+				const row = tmp[i].split(",");
+				prams.push({
+					name: row[0],
+					level: Number(row[1]),
+					hpMax: Number(row[2]),
+					at: Number(row[3]),
+					df: Number(row[4]),
+					sp: Number(row[5]),
+					exp: Number(row[6]),
+					presentExp: Number(row[7]),
+					score: Number(row[8]),
+				});
+			}
+		}
 
 		const hpBase = new g.E({
 			scene: scene,
@@ -118,7 +137,7 @@ export class Unit extends g.E {
 			src: scene.assets.unit as g.ImageAsset,
 			width: 80,
 			height: 80,
-			frames: [0, 1, 2, 3, 4],
+			frames: [...Array(30)].map((v, i) => i),
 		});
 		base.append(spr);
 
@@ -155,10 +174,13 @@ export class Unit extends g.E {
 			sprShadow.hide();
 			sprShadowBig.hide();
 
-			const bigNum = 4; //キャラ絵の大小の境界
+			const bigNum = 30; //キャラ絵の大小の境界
 			if (num < bigNum) {
 				sprNow = spr;
 				sprShadow.show();
+
+				sprShadow.y = 55;
+				sprShadow.modified();
 			} else {
 				sprNow = sprBig;
 				sprShadowBig.show();
@@ -264,7 +286,7 @@ export class Unit extends g.E {
 			hpBase.hide();
 			this.hp = 0;
 			this.weapon.angle = 45;
-			this.weapon.x = sprNow.width - 100;
+			this.weapon.x = sprNow.width / 2 - 80;
 			this.weapon.y = sprNow.height - 30;
 			this.weapon.modified();
 

@@ -60,6 +60,8 @@ export class MainScene extends g.Scene {
 			"se_miss",
 			"se_hit",
 			"se_item",
+			"unit_csv",
+			"weapon_csv"
 		];
 		super(param);
 
