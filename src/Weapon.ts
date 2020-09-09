@@ -52,15 +52,13 @@ export class Weapon extends g.E {
 			}
 		}
 
-		console.log(prams);
-
 		//画像表示用
 		const spr = new g.FrameSprite({
 			scene: scene,
 			src: scene.assets.weapon as g.ImageAsset,
 			width: 100,
 			height: 100,
-			frames: [0, 1, 2, 3, 4, 5, 6],
+			frames:  [...Array(25)].map((v, i) => i),
 			y: -80,
 		});
 		this.append(spr);

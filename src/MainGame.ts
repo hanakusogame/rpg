@@ -50,13 +50,21 @@ export class MainGame extends g.E {
 		});
 		this.append(uiBase);
 
+		const strokeFont = new g.DynamicFont({
+			game: scene.game,
+			fontFamily: g.FontFamily.Monospace,
+			fontColor: "white",
+			strokeColor: "black",
+			strokeWidth: 5,
+			size: 24,
+		});
+
 		//ステージ数表示用
 		let stage = 1;
 		const labelStage = new g.Label({
 			scene: scene,
-			font: font,
+			font: strokeFont,
 			fontSize: 24,
-			textColor: "white",
 			text: "エリア 0",
 			x: 500,
 			y: 270,
@@ -77,7 +85,7 @@ export class MainGame extends g.E {
 		//プレイヤー
 		const player = new Unit(scene, font, timeline);
 		base.append(player);
-		player.init(0, 1, floor.y);
+		player.init(0, 0, 1, floor.y);
 
 		//ステータス表示
 		const statusPlayer = new Status(scene, 5, 5, font);
@@ -163,7 +171,7 @@ export class MainGame extends g.E {
 				x: 20 + 80 * i,
 				y: 120,
 				cssColor: "yellow",
-				opacity: 0.5,
+				opacity: 0.0,
 				touchable: true,
 			});
 			shop.append(btn);
@@ -173,13 +181,40 @@ export class MainGame extends g.E {
 					enemy.y = floor.y - enemy.height;
 					enemy.modified();
 					scene.addScore(-enemy.weapon.pram.price);
+					scene.playSound("se_move");
 				}
 			});
 		}
 
+		const showDamage: (unit: Unit, damage: number) => void = (unit, damage) => {
+			const str = damage < 0 ? "" : "+";
+			const f = damage < 0 ? scene.numFontR : scene.numFont;
+			const label = new g.Label({
+				scene: scene,
+				font: f,
+				fontSize: 25,
+				text: str + damage,
+				x: unit.x + scene.random.get(0, 50) - unit.direction * 30,
+				y: unit.y + 20,
+			});
+			this.parent.append(label);
+			timeline
+				.create(label)
+				.moveBy(unit.direction * -20, -20, 200)
+				.wait(1000)
+				.call(() => {
+					label.destroy();
+				});
+			if (damage < 0) {
+				scene.playSound("se_attack");
+			} else {
+				scene.playSound("se_move");
+			}
+		};
+
 		let loopCnt = 0;
 		this.update.add(() => {
-			if (!scene.isStart) return;
+			if (!scene.isStart || player.hp <= 0) return;
 			if (moveX !== 0) {
 				// プレイヤー移動
 				player.x += (moveX < 0 ? -1 : 1) * player.getSpeed();
@@ -190,10 +225,12 @@ export class MainGame extends g.E {
 			enemyBase.children?.forEach((enemy: Unit) => {
 				if (!(enemy.visible() && enemy.hp > 0)) return;
 				if (g.Collision.intersectAreas(player, enemy)) {
-					if (loopCnt % (30 - player.attackTime) === 0) {
+					if (loopCnt % (30 - player.weapon.pram.sp * 5) === 0) {
 						//プレイヤーの攻撃
 						const damage = player.attack(enemy);
 						log.setLog(player.pram.name + "は" + enemy.pram.name + "に" + damage + "のダメージ");
+
+						showDamage(enemy, -damage);
 
 						//敵を倒した時
 						if (enemy.hp <= 0) {
@@ -205,16 +242,27 @@ export class MainGame extends g.E {
 								log.setLog("レベルが" + player.pram.level + "に上がった");
 							}
 							enemy.die(true);
+							scene.playSound("se_hit");
 						}
 
 						statusPlayer.setPrams(player);
 						if (!isIntersect) statusEnemy.setPrams(enemy);
-					} else if (loopCnt % (30 - enemy.attackTime) === 5) {
+					} else if (loopCnt % (30 - enemy.weapon.pram.sp * 5) === 4) {
 						//敵の攻撃
 						const damage = enemy.attack(player);
 						log.setLog(enemy.pram.name + "は" + player.pram.name + "に" + damage + "のダメージ");
 						statusPlayer.setPrams(player);
 						if (!isIntersect) statusEnemy.setPrams(enemy);
+						showDamage(player, -damage);
+						//プレイヤー死亡
+						if (player.hp <= 0) {
+							player.die(true);
+							log.setLog(player.pram.name + "は死んでしまった");
+							scene.setTimeout(() => {
+								start();
+							}, 3000);
+							scene.playSound("se_die");
+						}
 					}
 
 					isIntersect = true;
@@ -233,11 +281,21 @@ export class MainGame extends g.E {
 				statusEnemy.show();
 			}
 
-			//宿屋
+			//回復ボックス
 			if (innBack.visible() && g.Collision.intersectAreas(innBack, player)) {
-				if (loopCnt % 30 === 0) {
+				if (loopCnt % 30 === 0 && player.hp < player.pram.hpMax) {
 					player.addHp(10);
 					statusPlayer.setPrams(player);
+					showDamage(player, 10);
+				}
+			}
+
+			//城
+			if (castle.visible() && g.Collision.intersectAreas(castle, player)) {
+				if (loopCnt % 30 === 0 && player.hp < player.pram.hpMax) {
+					player.addHp(50);
+					statusPlayer.setPrams(player);
+					showDamage(player, 50);
 				}
 			}
 
@@ -272,6 +330,7 @@ export class MainGame extends g.E {
 					player.weapon.init(enemy.weapon.num);
 					statusPlayer.setPrams(player);
 					enemy.hide();
+					scene.playSound("se_item");
 					break;
 				}
 			}
@@ -309,7 +368,8 @@ export class MainGame extends g.E {
 					shop.show();
 					enemyBase.children.forEach((enemy: Unit, i) => {
 						enemy.x = 320 + 70 * i;
-						enemy.init(1, 1, 100);
+						const weaponNum = Math.min(scene.random.get(stage + 4, stage + 10), 24);
+						enemy.init(1, weaponNum, 1, 100);
 						enemy.show();
 						enemy.angle = -45;
 						enemy.modified();
@@ -323,7 +383,14 @@ export class MainGame extends g.E {
 				//敵エリア
 				enemyBase.children.forEach((enemy: Unit, i) => {
 					enemy.x = scene.random.get(100, 180) + 170 * i;
-					enemy.init(scene.random.get(1, 32), -p, floor.y);
+					let unitNum = Math.min(scene.random.get(stage, stage + stage), 32);
+					let weaponNum = Math.min(scene.random.get(stage, stage + 4), 24);
+					if (stage % 4 === 3 && i === 2) {
+						unitNum = 30 + Math.min(Math.floor(stage / 4), 3); //ボス
+						weaponNum = 0;
+					}
+
+					enemy.init(unitNum, weaponNum, -p, floor.y);
 					enemy.show();
 					enemy.angle = 0;
 					enemy.modified();
@@ -337,6 +404,8 @@ export class MainGame extends g.E {
 			base.append(innFront);
 
 			log.setLog("エリア " + stage);
+
+			scene.playSound("se_miss");
 		};
 
 		// 終了
@@ -344,15 +413,22 @@ export class MainGame extends g.E {
 			return;
 		};
 
-		// リセット
-		this.reset = () => {
-			stage = -1;
+		//スタート(プレイヤーが死んだ場合もここから)
+		const start: () => void = () => {
+			player.init(-1, 1, 1, floor.y);
+			stage = -1; //変
 			moveStage(0);
 			statusPlayer.setPrams(player);
 			innBack.hide();
 			innFront.hide();
 			shop.hide();
 			return;
+		};
+
+		// リセット
+		this.reset = () => {
+			player.init(0, 0, 0, floor.y - player.base.height);
+			start();
 		};
 	}
 }

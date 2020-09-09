@@ -26,7 +26,7 @@ export class Unit extends g.E {
 	public attackTime = 10;
 	public pram: Pram;
 	public weapon: Weapon;
-	public init: (x: number, d: number, y: number) => void;
+	public init: (n: number, wn: number, d: number, y: number) => void;
 	public attack: (unit: Unit) => number; //攻撃する
 	public defense: (num: number) => number; //攻撃を受ける
 	public getSpeed: () => number; //速度取得
@@ -72,22 +72,44 @@ export class Unit extends g.E {
 			}
 		}
 
-		const hpBase = new g.E({
+		const hpBase = new g.FilledRect({
 			scene: scene,
 			x: 0,
 			y: -30,
+			width: 64,
+			height: 14,
+			cssColor: "black",
 		});
 		this.append(hpBase);
+
+		/* 縁取りフォントを定義する */
+		const strokeFont = new g.DynamicFont({
+			game: scene.game,
+			fontFamily: g.FontFamily.Monospace,
+			fontColor: "white",
+			strokeColor: "black",
+			strokeWidth: 5,
+			size: 15,
+		});
+
+		/* 縁取りフォントを定義する */
+		const strokeFont2 = new g.DynamicFont({
+			game: scene.game,
+			fontFamily: g.FontFamily.Monospace,
+			fontColor: "yellow",
+			strokeColor: "black",
+			strokeWidth: 5,
+			size: 20,
+		});
 
 		// HP表示用
 		const label = new g.Label({
 			scene: scene,
-			font: font,
+			font: strokeFont,
 			fontSize: 15,
-			textColor: "white",
 			text: "",
 			x: 0,
-			y: 0,
+			y: -20,
 		});
 		hpBase.append(label);
 
@@ -95,7 +117,8 @@ export class Unit extends g.E {
 			scene: scene,
 			width: 60,
 			height: 10,
-			y: 20,
+			x: 2,
+			y: 2,
 			cssColor: "black",
 		});
 		hpBase.append(barHp);
@@ -104,7 +127,8 @@ export class Unit extends g.E {
 			scene: scene,
 			width: 60,
 			height: 10,
-			y: 20,
+			x: 2,
+			y: 2,
 			cssColor: "white",
 		});
 		hpBase.append(barHpSub);
@@ -149,10 +173,35 @@ export class Unit extends g.E {
 			src: scene.assets.unit_big as g.ImageAsset,
 			width: 160,
 			height: 160,
-			frames: [0, 1, 2, 3],
+			frames: [...Array(4)].map((v, i) => i),
 		});
 		base.append(sprBig);
 		sprBig.hide();
+
+		//レベルアップ表示用
+		const labelLevelUp = new g.Label({
+			scene: scene,
+			font: strokeFont2,
+			text: "レベルアップ!",
+			fontSize: 20,
+			y: -60,
+		});
+		this.append(labelLevelUp);
+		labelLevelUp.hide();
+
+		//死亡エフェクト
+		const sprEffect = new g.FrameSprite({
+			scene: scene,
+			src: scene.assets.effect as g.ImageAsset,
+			width: 120,
+			height: 120,
+			frames: [0, 1, 2],
+			interval: 100,
+			x: -20,
+			y: -20,
+		});
+		sprEffect.start();
+		this.append(sprEffect);
 
 		//表示しているスプライト
 		let sprNow = spr;
@@ -162,10 +211,14 @@ export class Unit extends g.E {
 		base.append(this.weapon);
 
 		let tween: tl.Tween = null;
+		let num = 0;
 
 		//初期化
-		this.init = (num: number, d: number, y: number) => {
-			this.pram = Object.create(prams[num]);
+		this.init = (n: number, wn: number, d: number, y: number) => {
+			if (n !== -1) {
+				num = n;
+				this.pram = Object.create(prams[num]);
+			}
 
 			timeline.remove(tween);
 
@@ -205,19 +258,22 @@ export class Unit extends g.E {
 			base.modified();
 			hpBase.show();
 
-			hpBase.y = -40 + scene.random.get(0, 20);
+			hpBase.y = -40 + scene.random.get(0, 40);
 			hpBase.modified();
 
 			barHpSub.width = barHp.width;
+			barHpSub.cssColor = "white";
 			barHpSub.modified();
 
-			this.weapon.init(scene.random.get(0, 6));
+			this.weapon.init(wn);
 
 			this.weapon.angle = 0;
 			this.weapon.x = sprNow.width - 30;
 			this.weapon.y = sprNow.height / 2;
 			this.weapon.modified();
 			base.append(this.weapon);
+
+			sprEffect.hide();
 
 			if (num === 0) {
 				this.touchable = true;
@@ -238,7 +294,7 @@ export class Unit extends g.E {
 					this.weapon.angle = 0;
 					this.weapon.modified();
 				});
-			timeline.create(spr).moveBy(20, 0, 100).moveBy(-20, 0, 100);
+			timeline.create(sprNow).moveBy(20, 0, 100).moveBy(-20, 0, 100);
 			return unit.defense(num);
 		};
 
@@ -246,15 +302,25 @@ export class Unit extends g.E {
 			label.text = "" + this.hp;
 			label.invalidate();
 
-			barHpSub.width = (this.hp / this.pram.hpMax) * barHp.width;
+			const hpRate = this.hp / this.pram.hpMax;
+			barHpSub.width = hpRate * barHp.width;
+
+			if (hpRate < 0.2) {
+				barHpSub.cssColor = "red";
+			} else if (hpRate < 0.4) {
+				barHpSub.cssColor = "yellow";
+			} else {
+				barHpSub.cssColor = "white";
+			}
 			barHpSub.modified();
 		};
 
 		// 防御
 		this.defense = (num) => {
 			const damage = Math.max(1, num - this.pram.df);
-			this.hp = Math.min(0, this.hp - damage);
+			this.hp = Math.max(0, this.hp - damage);
 			showHp();
+
 			return damage;
 		};
 
@@ -276,9 +342,17 @@ export class Unit extends g.E {
 				//レベルアップ
 				this.pram.level++;
 				this.pram.hpMax += this.pram.level;
-				this.pram.at += scene.random.get(1, this.pram.level);
-				this.pram.df += scene.random.get(0, this.pram.level - 1);
+				this.hp = Math.min(this.pram.hpMax, this.hp + this.pram.level);
+				this.pram.at += scene.random.get(0, 3);
+				this.pram.df += scene.random.get(0, 1);
 				this.pram.sp += scene.random.get(0, 1);
+
+				labelLevelUp.show();
+				showHp();
+
+				scene.setTimeout(() => {
+					labelLevelUp.hide();
+				}, 1000);
 				return true;
 			}
 			return false;
@@ -300,6 +374,11 @@ export class Unit extends g.E {
 			sprShadow.modified();
 
 			if (isAnim) {
+				sprEffect.show();
+				scene.setTimeout(() => {
+					sprEffect.hide();
+				}, 400);
+
 				tween = timeline
 					.create(sprNow)
 					.rotateBy(-300, 300)

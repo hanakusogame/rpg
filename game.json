@@ -39,7 +39,7 @@
 			"type": "audio",
 			"path": "audio/bgm",
 			"systemId": "music",
-			"duration": 34667
+			"duration": 28236
 		},
 		"se_hit": {
 			"type": "audio",
@@ -276,6 +276,18 @@
 		"weapon_csv": {
 			"type": "text",
 			"path": "text/weapon_csv.csv"
+		},
+		"se_attack": {
+			"type": "audio",
+			"path": "audio/se_attack",
+			"systemId": "sound",
+			"duration": 159
+		},
+		"se_die": {
+			"type": "audio",
+			"path": "audio/se_die",
+			"systemId": "sound",
+			"duration": 835
 		}
 	},
 	"moduleMainScripts": {
