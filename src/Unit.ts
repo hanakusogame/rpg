@@ -330,7 +330,8 @@ export class Unit extends g.E {
 
 		// 防御
 		this.defense = (num) => {
-			const damage = Math.max(1, num - this.pram.df);
+			const df = this.pram.df + scene.random.get(this.weapon.pram.dfMin, this.weapon.pram.dfMax);
+			const damage = Math.max(1, num - df);
 			this.hp = Math.max(0, this.hp - damage);
 			showHp();
 

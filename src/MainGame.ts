@@ -294,7 +294,7 @@ export class MainGame extends g.E {
 			//回復ボックス
 			if (innBack.visible() && g.Collision.intersectAreas(innBack, player)) {
 				if (loopCnt % 30 === 0 && player.hp < player.pram.hpMax) {
-					const num = (stage / 4) * 10;
+					const num = (stage / 4) * 5 + 5;
 					player.addHp(num);
 					statusPlayer.setPrams(player);
 					showDamage(player, num);
