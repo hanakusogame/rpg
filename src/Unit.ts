@@ -338,22 +338,25 @@ export class Unit extends g.E {
 		//経験値を増やす(レベルが上がったらtrueを返す)
 		this.addExp = (unit: Unit) => {
 			this.pram.exp += unit.pram.presentExp;
-			if (this.pram.exp >= Math.pow(this.pram.level, 2)) {
-				//レベルアップ
-				this.pram.level++;
-				this.pram.hpMax += this.pram.level;
-				this.hp = Math.min(this.pram.hpMax, this.hp + this.pram.level);
-				this.pram.at += scene.random.get(0, 3);
-				this.pram.df += scene.random.get(0, 1);
-				this.pram.sp += scene.random.get(0, 1);
+			while (true) {
+				if (this.pram.exp >= Math.pow(this.pram.level, 2)) {
+					//レベルアップ
+					this.pram.level++;
+					this.pram.hpMax += this.pram.level;
+					this.hp = Math.min(this.pram.hpMax, this.hp + this.pram.level);
+					this.pram.at += scene.random.get(0, 3);
+					this.pram.df += scene.random.get(0, 1);
+					this.pram.sp += scene.random.get(0, 1);
 
-				labelLevelUp.show();
-				showHp();
+					labelLevelUp.show();
+					showHp();
 
-				scene.setTimeout(() => {
-					labelLevelUp.hide();
-				}, 1000);
-				return true;
+					scene.setTimeout(() => {
+						labelLevelUp.hide();
+					}, 1000);
+				} else {
+					break;
+				}
 			}
 			return false;
 		};

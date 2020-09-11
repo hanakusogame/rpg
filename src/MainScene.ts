@@ -69,7 +69,7 @@ export class MainScene extends g.Scene {
 
 		const timeline = new tl.Timeline(this);
 		const timeline2 = new tl.Timeline(this);
-		const isDebug = true;
+		const isDebug = false;
 
 		this.loaded.add(() => {
 			g.game.vars.gameState = { score: 0 };
@@ -138,7 +138,7 @@ export class MainScene extends g.Scene {
 				.create(sprTitle, {
 					modified: sprTitle.modified,
 				})
-				.wait(isDebug ? 1000 : 5000)
+				.wait(isDebug ? 1000 : 8000)
 				.moveBy(-800, 0, 200)
 				.call(() => {
 					bg.show();
@@ -206,9 +206,9 @@ export class MainScene extends g.Scene {
 			this.score = 0;
 			const labelScore = new g.Label({
 				scene: this,
-				x: 430,
-				y: 35,
-				width: 32 * 6,
+				x: 150,
+				y: 280,
+				width: 32 * 10,
 				fontSize: 32,
 				font: numFont,
 				text: "0P",
@@ -219,8 +219,8 @@ export class MainScene extends g.Scene {
 
 			const labelScorePlus = new g.Label({
 				scene: this,
-				x: 312,
-				y: 70,
+				x: 150,
+				y: 310,
 				width: 32 * 10,
 				fontSize: 32,
 				font: numFontRed,

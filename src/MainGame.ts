@@ -55,7 +55,7 @@ export class MainGame extends g.E {
 			fontFamily: g.FontFamily.Monospace,
 			fontColor: "white",
 			strokeColor: "black",
-			strokeWidth: 5,
+			strokeWidth: 7,
 			size: 24,
 		});
 
@@ -66,8 +66,8 @@ export class MainGame extends g.E {
 			font: strokeFont,
 			fontSize: 24,
 			text: "エリア 0",
-			x: 500,
-			y: 270,
+			x: 510,
+			y: 280,
 		});
 		uiBase.append(labelStage);
 
@@ -213,6 +213,8 @@ export class MainGame extends g.E {
 		};
 
 		let loopCnt = 0;
+		let allClearFlg = false;//ラスボス討伐フラグ
+		const bossId = 33;//ラスボスのユニットID
 		this.update.add(() => {
 			if (!scene.isStart || player.hp <= 0) return;
 			if (moveX !== 0) {
@@ -243,6 +245,11 @@ export class MainGame extends g.E {
 							}
 							enemy.die(true);
 							scene.playSound("se_hit");
+
+							//ラスボス討伐
+							if (enemy.pram.id === bossId) {
+								allClearFlg = true;
+							}
 						}
 
 						statusPlayer.setPrams(player);
@@ -326,6 +333,7 @@ export class MainGame extends g.E {
 			for (let i = 0; i < enemyBase.children.length; i++) {
 				const enemy = enemyBase.children[i] as Unit;
 				if (!(enemy.state & 1) && g.Collision.intersectAreas(player, enemy) && enemy.hp <= 0) {
+					if (enemy.weapon.num === 0) break;
 					log.setLog("" + enemy.weapon.pram.name + "を装備した");
 					player.weapon.init(enemy.weapon.num);
 					statusPlayer.setPrams(player);
@@ -385,7 +393,7 @@ export class MainGame extends g.E {
 					enemy.x = scene.random.get(100, 180) + 170 * i;
 					let unitNum = Math.min(scene.random.get(stage, stage + stage), 32);
 					let weaponNum = Math.min(scene.random.get(stage, stage + 4), 24);
-					if (stage % 4 === 3 && i === 2) {
+					if (stage % 4 === 3 && i === 2 && !allClearFlg) {
 						unitNum = 30 + Math.min(Math.floor(stage / 4), 3); //ボス
 						weaponNum = 0;
 					}
@@ -428,6 +436,7 @@ export class MainGame extends g.E {
 		// リセット
 		this.reset = () => {
 			player.init(0, 0, 0, floor.y - player.base.height);
+			allClearFlg = false;
 			start();
 		};
 	}
