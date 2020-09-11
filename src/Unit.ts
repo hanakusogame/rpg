@@ -35,8 +35,9 @@ export class Unit extends g.E {
 	public addHp: (num: number) => void; //hp回復
 	public base: g.E;
 	public direction: number = 1; //左右の向き
+	public setDirection: (d: number) => void;
 
-	constructor(scene: MainScene, font: g.Font, timeline: tl.Timeline) {
+	constructor(scene: MainScene, font: g.Font) {
 		super({
 			scene: scene,
 			width: 64,
@@ -44,6 +45,8 @@ export class Unit extends g.E {
 			//cssColor: "gray",
 			y: 200,
 		});
+
+		const timeline = new tl.Timeline(scene);
 
 		if (!prams) {
 			//csvを読み込んでパラメーター配列作成
@@ -72,16 +75,6 @@ export class Unit extends g.E {
 			}
 		}
 
-		const hpBase = new g.FilledRect({
-			scene: scene,
-			x: 0,
-			y: -30,
-			width: 64,
-			height: 14,
-			cssColor: "black",
-		});
-		this.append(hpBase);
-
 		/* 縁取りフォントを定義する */
 		const strokeFont = new g.DynamicFont({
 			game: scene.game,
@@ -103,6 +96,16 @@ export class Unit extends g.E {
 		});
 
 		// HP表示用
+		const hpBase = new g.FilledRect({
+			scene: scene,
+			x: 0,
+			y: -30,
+			width: 64,
+			height: 14,
+			cssColor: "orange",
+		});
+		this.append(hpBase);
+
 		const label = new g.Label({
 			scene: scene,
 			font: strokeFont,
@@ -213,6 +216,13 @@ export class Unit extends g.E {
 		let tween: tl.Tween = null;
 		let num = 0;
 
+		//向きを変更
+		this.setDirection = (d) => {
+			this.direction = d;
+			base.scaleX = d;
+			base.modified();
+		};
+
 		//初期化
 		this.init = (n: number, wn: number, d: number, y: number) => {
 			if (n !== -1) {
@@ -253,12 +263,15 @@ export class Unit extends g.E {
 			sprBig.hide();
 			sprNow.show();
 
-			this.direction = d;
-			base.scaleX = d;
-			base.modified();
+			this.setDirection(d);
 			hpBase.show();
 
 			hpBase.y = -40 + scene.random.get(0, 40);
+			if (num === 0) {
+				hpBase.cssColor = "blue";
+			} else {
+				hpBase.cssColor = "orange";
+			}
 			hpBase.modified();
 
 			barHpSub.width = barHp.width;
@@ -375,6 +388,8 @@ export class Unit extends g.E {
 
 			sprShadow.y = sprNow.width - 20;
 			sprShadow.modified();
+
+			timeline.cancelAll();
 
 			if (isAnim) {
 				sprEffect.show();

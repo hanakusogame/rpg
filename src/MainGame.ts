@@ -83,7 +83,7 @@ export class MainGame extends g.E {
 		//base.append(floor);
 
 		//プレイヤー
-		const player = new Unit(scene, font, timeline);
+		const player = new Unit(scene, font);
 		base.append(player);
 		player.init(0, 0, 1, floor.y);
 
@@ -107,7 +107,7 @@ export class MainGame extends g.E {
 
 		//敵
 		for (let i = 0; i < 3; i++) {
-			const enemy = new Unit(scene, font, timeline);
+			const enemy = new Unit(scene, font);
 			enemyBase.append(enemy);
 		}
 
@@ -144,7 +144,7 @@ export class MainGame extends g.E {
 			scene: scene,
 			src: scene.assets.shop,
 			x: 300,
-			y: floor.y - 250,
+			y: floor.y - 270,
 		});
 		bgBase.append(shop);
 
@@ -219,7 +219,10 @@ export class MainGame extends g.E {
 			if (!scene.isStart || player.hp <= 0) return;
 			if (moveX !== 0) {
 				// プレイヤー移動
-				player.x += (moveX < 0 ? -1 : 1) * player.getSpeed();
+				let distance = moveX < 0 ? -1 : 1;
+				if (pointX < 100) distance = -1;
+				if (pointX > base.width - 100) distance = 1;
+				player.x += distance * player.getSpeed();
 				player.modified();
 			}
 
@@ -291,9 +294,11 @@ export class MainGame extends g.E {
 			//回復ボックス
 			if (innBack.visible() && g.Collision.intersectAreas(innBack, player)) {
 				if (loopCnt % 30 === 0 && player.hp < player.pram.hpMax) {
-					player.addHp(10);
+					const num = (stage / 4) * 10;
+					player.addHp(num);
 					statusPlayer.setPrams(player);
-					showDamage(player, 10);
+					showDamage(player, num);
+					log.setLog(player.pram.name + "はHPを" + num + "回復");
 				}
 			}
 
@@ -319,12 +324,15 @@ export class MainGame extends g.E {
 			loopCnt++;
 		});
 
+		let pointX = 0;
 		let moveX = 0;
 		this.pointDown.add((ev) => {
-			moveX = ev.point.x - player.x - player.width / 2;
+			pointX = ev.point.x;
+			moveX = pointX - player.x - player.width / 2;
 		});
 
 		this.pointUp.add(() => {
+			pointX = 0;
 			moveX = 0;
 		});
 
@@ -377,7 +385,7 @@ export class MainGame extends g.E {
 					enemyBase.children.forEach((enemy: Unit, i) => {
 						enemy.x = 320 + 70 * i;
 						const weaponNum = Math.min(scene.random.get(stage + 4, stage + 10), 24);
-						enemy.init(1, weaponNum, 1, 100);
+						enemy.init(1, weaponNum, 1, 80);
 						enemy.show();
 						enemy.angle = -45;
 						enemy.modified();
@@ -406,6 +414,7 @@ export class MainGame extends g.E {
 			}
 
 			player.x = p === -1 ? g.game.width - player.width : 0;
+			player.setDirection(p);
 			player.modified();
 			base.append(player);
 

@@ -5,9 +5,9 @@
   "requires": true,
   "dependencies": {
     "@akashic-extension/akashic-timeline": {
-      "version": "2.3.0",
-      "resolved": "https://registry.npmjs.org/@akashic-extension/akashic-timeline/-/akashic-timeline-2.3.0.tgz",
-      "integrity": "sha512-T7bbvrV+/goaT1NwrOw2WahjxR48fo2hwTCOF2UazuVkpw8x2TypiSUZCWjs+7TuJAycbZIO3MzBq5VasDQlvg=="
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/@akashic-extension/akashic-timeline/-/akashic-timeline-2.3.1.tgz",
+      "integrity": "sha512-o1AXsNJOzgY5Sp1lt/hl/Dor8fOtmjg8deJeQE3HMVq4IoeD6swFcCOUw2Vpx+C4SaZMOrp1kkg/uKWTpitApQ=="
     },
     "@akashic/akashic-cli-commons": {
       "version": "0.5.27",
